@@ -10,3 +10,13 @@ export function createUserDB(email, password, username, image) {
   );
   return result;
 }
+
+export function findUserEmailDB(email) {
+  const result = db.query(
+    `
+        SELECT * FROM users WHERE email=$1;
+    `,
+    [email]
+  );
+  return result;
+}

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import schemaValidation from "../middlewares/schemaValidation.middleware.js";
-import { publishSchema } from "../schemas/validate.schem.js";
+import { publishSchema } from "../schemas/validate.schema.js";
 import { getPostsDev, publish } from "../controllers/posts.controller.js";
 
 const postRouter = Router()

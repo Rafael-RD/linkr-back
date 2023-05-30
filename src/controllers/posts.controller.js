@@ -1,4 +1,4 @@
-import { getPostsDevRep } from "../repositories/posts.repository.js"
+import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
 
 // GetPostsDev é um Get que está sendo utilizado para Desenvolvimento apenas para verificar se os dados
 // estão sendo inseridos corretamente na tabela "posts"
@@ -21,10 +21,10 @@ export async function publish(req, res) {
 
     try {
         const {id}  = jwt.verify(token, process.env.SECRET_KEY);
-
         const response = await publishPost(id, description, link, tags)
         res.send("Published")
     } catch (err) {
-        res.status(500).send(err.message)
+        console.error(err)
+        res.status(501).send(err.message)
     }
 }

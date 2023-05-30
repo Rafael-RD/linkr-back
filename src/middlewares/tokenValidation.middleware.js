@@ -8,8 +8,7 @@ export default function tokenValidation(req, res, next){
         res.locals.tokenData=tokenData;
         next();
     } catch (error) {
-        return res.sendStatus(error);
+        console.error(error);
+        return res.sendStatus(401);
     }
 }
-
-console.log(tokenValidation({headers:{authorization: "Bearer safiuahsdfhiausdhfiuahsdf"}}, {sendStatus: (status)=>status}, ()=>console.log("foi")));

@@ -1,15 +1,17 @@
-import { getUserId } from "../repositories/users.repository";
-
-export async function getPostsDev(req, res) {
+import { getUserIdRep } from "../repositories/users.repository.js";
+import jwt from "jsonwebtoken";
+export async function getUserId(req, res) {
     const { authorization } = req.headers
-    if (!authorization) return res.sendStatus(401);
-    const token = authorization.replace("Bearer ", "");
-
+    
     try {
-        const id  = jwt.verify(token, process.env.SECRET_KEY);
-        const response = await getUserId(id)
+        if (!authorization) return res.sendStatus(401);
+        const token = authorization?.replace("Bearer ", "");
+        // console.log(token)
+        const {id}  = jwt.verify(token, process.env.SECRET_KEY);
+        const response = await getUserIdRep(id)
         res.send(response.rows)
     } catch (err) {
-        res.status(500).send(err.message)
+        console.error(err)
+        res.status(501).send(err.message)
     }
 }

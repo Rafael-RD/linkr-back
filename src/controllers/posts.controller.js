@@ -17,12 +17,12 @@ export async function publish(req, res) {
     const { authorization } = req.headers;
 
     if (!authorization) return res.sendStatus(401);
-    const token = authorization.replace("Bearer ", "");
+    const token = authorization?.replace("Bearer ", "");
 
     try {
-        const id  = jwt.verify(token, process.env.SECRET_KEY);
+        const {id}  = jwt.verify(token, process.env.SECRET_KEY);
 
-        const response = await publishPost(userId, description, link)
+        const response = await publishPost(id, description, link, tags)
         res.send("Published")
     } catch (err) {
         res.status(500).send(err.message)

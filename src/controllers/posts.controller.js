@@ -13,18 +13,14 @@ export async function getPostsDev(req, res) {
 }
 
 export async function publish(req, res) {
-    const {description, link, tags} = req.body
-    const { authorization } = req.headers;
-
-    if (!authorization) return res.sendStatus(401);
-    const token = authorization?.replace("Bearer ", "");
-
+    const {description, link} = req.body
+    const {id} = res.locals.tokenData;
     try {
-        const {id}  = jwt.verify(token, process.env.SECRET_KEY);
+        const tags = description.split(" ").filter(word => word[0] === "#").map(t => t.replace("#", ""))
         const response = await publishPost(id, description, link, tags)
-        res.send("Published")
+        res.status(201).send({id: response})
     } catch (err) {
         console.error(err)
-        res.status(501).send(err.message)
+        res.status(500).send(err.message)
     }
 }

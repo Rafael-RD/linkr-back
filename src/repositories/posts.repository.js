@@ -21,7 +21,7 @@ export function findTimeline(page=1){
 
 
 export async function getPostsDevRep () {
-	return await db.query(`SELECT * FROM posts;`)
+	return await db.query(`SELECT * FROM post_tag;`)
 }
 
 export async function publishPost(id, description, link, tags) {
@@ -31,38 +31,28 @@ export async function publishPost(id, description, link, tags) {
 	   RETURNING id;`,
 	  [id, description, link]
 	);
-
 	const postId = post.rows[0].id;
+	
+	const queryTags = tags.map((t, index) => `$${index+1}`).join(", ")
+	const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
+	const {rows} = await db.query(queryFindTags , [...tags]);
 
-	for (let i = 0; i < tags.length; i++) {
-	  const tag = await db.query(`SELECT id FROM tags WHERE name = $1;`, [
-		tags[i].toLowerCase(),
-	  ]);
-  
-	  if (!tag.rows[0]) {
-		const newTag = await db.query(
-		  `INSERT INTO tags (name) VALUES ($1) RETURNING id;`,
-		  [tags[i]]
-		);
-  
-		const tagId = newTag.rows[0].id;
-  
-		await db.query(
-		  `INSERT INTO post_tag ("postId", "tagId")
-		   VALUES ($1, $2);`,
-		  [postId, tagId]
-		);
-	  } else {
-		const tagId = tag.rows[0].id;
-  
-		await db.query(
-		  `INSERT INTO post_tag ("postId", "tagId")
-		   VALUES ($1, $2);`,
-		  [postId, tagId]
-		);
-	  }
-	}
-  
+	//Array de ids de tags que já existem no banco de dados
+	const existingIds = [...rows].map(tag => tag.id);
+	//Array de nomes de tags que já existem no bando de dados
+	const existingNames = [...rows].map(tag => tag.name);
+
+	//Array de tags que precisam ser inseridas
+	const filteredTags = tags.filter(tag => !existingNames.includes(tag))
+	const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
+	const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
+	const {rows: createdTagIds} = await db.query(tagQuery, filteredTags)
+	
+	createdTagIds.forEach(tagId => existingIds.push(tagId.id));
+	const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
+	const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
+	const final = await db.query(queryTagPost, [postId, ...existingIds]);
+
 	return postId;
   }
   

@@ -1,6 +1,7 @@
 import { findTimeline } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
+import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function getTimeline(req, res){
     const {id}=res.locals.tokenData;
@@ -9,7 +10,22 @@ export async function getTimeline(req, res){
         const idSearch=await findUserIdDB(id);
         if(idSearch.rowCount===0) return res.sendStatus(401);
         const postsSearch=await findTimeline(1);
-        return res.send(postsSearch.rows);
+
+        const resp=[]
+        for(const e of postsSearch.rows){
+            const meta=await getMetadata(e.link);
+            resp.push({
+                ...e, linkMetadata: meta
+            });
+        }
+
+        // const res=postsSearch.rows.map(e=>({
+        //     ...e,// linkMetadata: getMetadata(e.link)
+        // }));
+
+        // console.log(await getMetadata(postsSearch.rows[0].link));
+
+        return res.send(resp);
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

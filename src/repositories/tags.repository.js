@@ -47,7 +47,8 @@ export function getTagPosts(name, userId) {
     JOIN post_tag pt on pt."postId" = posts.id
     JOIN tags on tags.id = pt."tagId"
     WHERE tags.name ILIKE $1
-    ORDER BY posts."createdAt" DESC;
+    ORDER BY posts."createdAt" DESC
+    LIMIT 20;
     `,
     [name, userId]
   );

@@ -33,7 +33,7 @@ export async function publishPost(id, description, link, tags) {
 	);
 	const postId = post.rows[0].id;
 
-	if(tags.length > 0){
+	if (tags.length > 0) {
 		const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
 		const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
 		const { rows } = await db.query(queryFindTags, [...tags]);
@@ -60,74 +60,58 @@ export async function publishPost(id, description, link, tags) {
 }
 
 export async function updatePostByPostId(description, postId, tags, userId) {
-	const user = await db.query(
-		`SELECT * FROM posts
-		WHERE id=$1;`, 
-		[postId]
-	);
-	if(userId === user.rows[0].userId){
-		await db.query(
-			`UPDATE posts 
+	await db.query(
+		`UPDATE posts 
 			SET description = $1
 			WHERE id=$2;`,
-			[description, postId]
-		);
+		[description, postId]
+	);
 
-		await db.query(
-			`DELETE FROM post_tag
+	await db.query(
+		`DELETE FROM post_tag
 			WHERE "postId"=$1;`, [postId]
-		);
-		console.log(tags)
-		if(tags.length > 0){
-			const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
-			const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
-			const { rows } = await db.query(queryFindTags, [...tags]);
+	);
+	console.log(tags)
+	if (tags.length > 0) {
+		const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
+		const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
+		const { rows } = await db.query(queryFindTags, [...tags]);
 
-			//Array de ids de tags que já existem no banco de dados
-			const existingIds = [...rows].map(tag => tag.id);
-			//Array de nomes de tags que já existem no banco de dados
-			const existingNames = [...rows].map(tag => tag.name);
+		//Array de ids de tags que já existem no banco de dados
+		const existingIds = [...rows].map(tag => tag.id);
+		//Array de nomes de tags que já existem no banco de dados
+		const existingNames = [...rows].map(tag => tag.name);
 
-			//Array de tags que precisam ser inseridas
-			const filteredTags = tags.filter(tag => !existingNames.includes(tag))
-			if (filteredTags.length > 0) {
-				const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
-				const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
-				const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
-				createdTagIds.forEach(tagId => existingIds.push(tagId.id));
-			}
-
-			const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
-			const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
-			const final = await db.query(queryTagPost, [postId, ...existingIds]);
+		//Array de tags que precisam ser inseridas
+		const filteredTags = tags.filter(tag => !existingNames.includes(tag))
+		if (filteredTags.length > 0) {
+			const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
+			const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
+			const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
+			createdTagIds.forEach(tagId => existingIds.push(tagId.id));
 		}
-	}else{
-		return 403;
+
+		const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
+		const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
+		const final = await db.query(queryTagPost, [postId, ...existingIds]);
 	}
 
 	return 200;
 }
 
-export async function deletePostByPostId(postId, userId){
-	const user = await db.query(
-		`SELECT * FROM posts
-		WHERE id=$1;`, 
+export async function deletePostByPostId(postId, userId) {
+
+	await db.query(
+		`DELETE FROM post_tag 
+			WHERE "postId"=$1;`,
+		[postId,]
+	);
+	await db.query(
+		`DELETE FROM posts
+			WHERE id=$1;`,
 		[postId]
 	);
-	if(userId === user.rows[0].userId){
-		await db.query(
-			`DELETE FROM post_tag 
-			WHERE "postId"=$1;`,
-			[postId, ]
-		);
-		await db.query(
-			`DELETE FROM posts
-			WHERE id=$1;`,
-			[postId]
-		);			
-	}else{
-		return 403;
-	}
+
 
 	return 200;
 }

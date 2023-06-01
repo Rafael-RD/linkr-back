@@ -13,3 +13,43 @@ export function getTrendingDB() {
   );
   return result;
 }
+
+export function getTagPosts(name, userId) {
+  const result = db.query(
+    `
+    SELECT 
+    posts.id, 
+    posts."userId" AS "userId",
+    users."userName",
+    users.picture,
+    posts.description, 
+    posts.link, 
+    posts."createdAt",
+    (
+        SELECT COUNT(*) 
+        FROM likes 
+        WHERE likes."postId" = posts.id
+    ) AS qtt_likes, 
+    (
+        SELECT jsonb_agg(u."userName")
+        FROM likes
+        INNER JOIN users u ON u.id = likes."userId"
+        WHERE likes."postId" = posts.id
+        LIMIT 5
+    )AS like_users,
+    EXISTS (
+        SELECT 1 FROM likes 
+        WHERE likes."postId" = posts.id
+        AND likes."userId" = $2
+    ) AS "hasLiked"
+    FROM posts
+    JOIN users on users.id = posts."userId"
+    JOIN post_tag pt on pt."postId" = posts.id
+    JOIN tags on tags.id = pt."tagId"
+    WHERE tags.name = $1
+    ORDER BY posts."createdAt" DESC;
+    `,
+    [name, userId]
+  );
+  return result;
+}

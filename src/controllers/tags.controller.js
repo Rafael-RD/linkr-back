@@ -1,5 +1,5 @@
 import { getTagPosts, getTrendingDB } from "../repositories/tags.repository.js";
-import { fetchMetadata } from "../utils/metadata.utils.js";
+import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function trending(req, res) {
   try {
@@ -18,7 +18,7 @@ export async function listHashtags(req, res) {
     const { rows } = await getTagPosts(name, userId);
     const resultWithMetadata = await Promise.all(
       rows.map(async (row) => {
-        const metadata = await fetchMetadata(row.link);
+        const metadata = await getMetadata(row.link);
         return { ...row, linkMetadata: metadata };
       })
     );

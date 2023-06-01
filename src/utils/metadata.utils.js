@@ -7,7 +7,3 @@ export async function getMetadata(link) {
   delete meta.responseBody;
   return meta;
 }
-
-export async function fetchMetadata(link) {
-  return await urlMetadata(link);
-}

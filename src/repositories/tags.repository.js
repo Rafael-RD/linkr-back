@@ -46,7 +46,7 @@ export function getTagPosts(name, userId) {
     JOIN users on users.id = posts."userId"
     JOIN post_tag pt on pt."postId" = posts.id
     JOIN tags on tags.id = pt."tagId"
-    WHERE tags.name = $1
+    WHERE tags.name ILIKE $1
     ORDER BY posts."createdAt" DESC;
     `,
     [name, userId]

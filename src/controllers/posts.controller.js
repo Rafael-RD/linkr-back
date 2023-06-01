@@ -5,26 +5,19 @@ import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function getTimeline(req, res){
     const {id}=res.locals.tokenData;
-
+    
     try {
         const idSearch=await findUserIdDB(id);
         if(idSearch.rowCount===0) return res.sendStatus(401);
         const postsSearch=await findTimeline(1);
-
-        const resp=[]
+        
+        const resp=[];
         for(const e of postsSearch.rows){
             const meta=await getMetadata(e.link);
             resp.push({
                 ...e, linkMetadata: meta
             });
         }
-
-        // const res=postsSearch.rows.map(e=>({
-        //     ...e,// linkMetadata: getMetadata(e.link)
-        // }));
-
-        // console.log(await getMetadata(postsSearch.rows[0].link));
-
         return res.send(resp);
     } catch (error) {
         console.error(error);

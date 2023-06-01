@@ -1,14 +1,16 @@
 import { Router } from "express";
 import tokenValidation from "../middlewares/tokenValidation.middleware.js";
-import { getTimeline } from "../controllers/posts.controller.js";
+import { deletePost, getTimeline, updatePost } from "../controllers/posts.controller.js";
 import schemaValidation from "../middlewares/schemaValidation.middleware.js";
-import { publishSchema } from "../schemas/validate.schema.js";
+import { editPublishSchema, publishSchema } from "../schemas/validate.schema.js";
 import { getPostsDev, publish } from "../controllers/posts.controller.js";
 
 const postsRouter=Router();
 
 postsRouter.get("/timeline", tokenValidation, getTimeline);
-postsRouter.get("/postDev", getPostsDev)
-postsRouter.post("/post",tokenValidation,schemaValidation(publishSchema), publish)
+postsRouter.get("/postDev", getPostsDev);
+postsRouter.post("/post",tokenValidation,schemaValidation(publishSchema), publish);
+postsRouter.patch("/post", tokenValidation, schemaValidation(editPublishSchema), updatePost);
+postsRouter.delete("/post", tokenValidation, deletePost);
 
 export default postsRouter;

@@ -1,7 +1,7 @@
 import { db } from "../database/database.connection.js";
 
-export function findTimeline(page=1){
-    return db.query(`
+export function findTimeline(page = 1) {
+	return db.query(`
     SELECT posts.*, users."userName", users.picture, sub_query_like.like_users, sub_query_like.qtt_likes, sub_query_tag.tag_array
     FROM posts LEFT JOIN (
 	    SELECT post_tag."postId", array_agg(tags.name) AS tag_array 
@@ -16,43 +16,102 @@ export function findTimeline(page=1){
 		GROUP BY likes.id
 	) sub_query_like ON posts.id=sub_query_like."postId"
     ORDER BY posts."createdAt" DESC 
-    LIMIT 20 OFFSET $1;`, [(page-1)*20]);
+    LIMIT 20 OFFSET $1;`, [(page - 1) * 20]);
 }
 
 
-export async function getPostsDevRep () {
+export async function getPostsDevRep() {
 	return await db.query(`SELECT * FROM post_tag;`)
 }
 
 export async function publishPost(id, description, link, tags) {
 	const post = await db.query(
-	  `INSERT INTO posts ("userId", description, link)
-	   VALUES ($1, $2, $3)
-	   RETURNING id;`,
-	  [id, description, link]
+		`INSERT INTO posts ("userId", description, link)
+		VALUES ($1, $2, $3)
+		RETURNING id;`,
+		[id, description, link]
 	);
 	const postId = post.rows[0].id;
-	
-	const queryTags = tags.map((t, index) => `$${index+1}`).join(", ")
-	const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
-	const {rows} = await db.query(queryFindTags , [...tags]);
 
-	//Array de ids de tags que já existem no banco de dados
-	const existingIds = [...rows].map(tag => tag.id);
-	//Array de nomes de tags que já existem no bando de dados
-	const existingNames = [...rows].map(tag => tag.name);
+	if (tags.length > 0) {
+		const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
+		const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
+		const { rows } = await db.query(queryFindTags, [...tags]);
 
-	//Array de tags que precisam ser inseridas
-	const filteredTags = tags.filter(tag => !existingNames.includes(tag))
-	const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
-	const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
-	const {rows: createdTagIds} = await db.query(tagQuery, filteredTags)
-	
-	createdTagIds.forEach(tagId => existingIds.push(tagId.id));
-	const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
-	const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
-	const final = await db.query(queryTagPost, [postId, ...existingIds]);
+		//Array de ids de tags que já existem no banco de dados
+		const existingIds = [...rows].map(tag => tag.id);
+		//Array de nomes de tags que já existem no banco de dados
+		const existingNames = [...rows].map(tag => tag.name);
 
+		//Array de tags que precisam ser inseridas
+		const filteredTags = tags.filter(tag => !existingNames.includes(tag))
+		if (filteredTags.length > 0) {
+			const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
+			const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
+			const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
+			createdTagIds.forEach(tagId => existingIds.push(tagId.id));
+		}
+
+		const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
+		const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
+		const final = await db.query(queryTagPost, [postId, ...existingIds]);
+	}
 	return postId;
-  }
-  
+}
+
+export async function updatePostByPostId(description, postId, tags, userId) {
+	await db.query(
+		`UPDATE posts 
+			SET description = $1
+			WHERE id=$2;`,
+		[description, postId]
+	);
+
+	await db.query(
+		`DELETE FROM post_tag
+			WHERE "postId"=$1;`, [postId]
+	);
+	console.log(tags)
+	if (tags.length > 0) {
+		const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
+		const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
+		const { rows } = await db.query(queryFindTags, [...tags]);
+
+		//Array de ids de tags que já existem no banco de dados
+		const existingIds = [...rows].map(tag => tag.id);
+		//Array de nomes de tags que já existem no banco de dados
+		const existingNames = [...rows].map(tag => tag.name);
+
+		//Array de tags que precisam ser inseridas
+		const filteredTags = tags.filter(tag => !existingNames.includes(tag))
+		if (filteredTags.length > 0) {
+			const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
+			const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
+			const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
+			createdTagIds.forEach(tagId => existingIds.push(tagId.id));
+		}
+
+		const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
+		const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
+		const final = await db.query(queryTagPost, [postId, ...existingIds]);
+	}
+
+	return 200;
+}
+
+export async function deletePostByPostId(postId, userId) {
+
+	await db.query(
+		`DELETE FROM post_tag 
+			WHERE "postId"=$1;`,
+		[postId,]
+	);
+	await db.query(
+		`DELETE FROM posts
+			WHERE id=$1;`,
+		[postId]
+	);
+
+
+	return 200;
+}

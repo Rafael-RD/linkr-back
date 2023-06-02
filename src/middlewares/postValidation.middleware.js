@@ -1,4 +1,3 @@
-import { db } from "../database/database.connection.js";
 import { getUserIdForValidate } from "../repositories/posts.repository.js";
 
 export default async function postUserValidation(req, res, next) {

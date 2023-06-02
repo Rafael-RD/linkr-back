@@ -7,7 +7,6 @@ export default async function postUserValidation(req, res, next) {
 
     try {
         const userId = await getUserIdForValidate(postId)
-        console.log({id, userId})
         if (id !== userId) {
             return res.sendStatus(403);
         }

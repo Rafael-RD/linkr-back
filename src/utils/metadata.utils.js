@@ -1,9 +1,10 @@
 import urlMetadata from "url-metadata";
 import * as cheerio from "cheerio";
+import fetch from "node-fetch";
 
 export async function getMetadata(link) {
   try {
-    const meta = await urlMetadata(link, { includeResponseBody: true });
+    const meta = await urlMetadata(link, { fetch, includeResponseBody: true });
     const $ = cheerio.load(meta.responseBody);
     meta.myTitle = $("title").text();
     const icon = findLargestIcon(

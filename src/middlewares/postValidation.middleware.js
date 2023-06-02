@@ -5,6 +5,7 @@ export default async function postUserValidation(req, res, next) {
     const { id } = res.locals.tokenData;
 
     try {
+
         const userId = await getUserIdForValidate(postId)
         if (id !== userId) {
             return res.sendStatus(403);

@@ -1,15 +1,24 @@
-import { findTimeline } from "../repositories/posts.repository.js";
+import { deletePostByPostId, findTimeline, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
+import { getMetadata } from "../utils/metadata.utils.js";
 
-export async function getTimeline(req, res){
-    const {id}=res.locals.tokenData;
+export async function getTimeline(req, res) {
+    const { id } = res.locals.tokenData;
 
     try {
-        const idSearch=await findUserIdDB(id);
-        if(idSearch.rowCount===0) return res.sendStatus(401);
-        const postsSearch=await findTimeline(1);
-        return res.send(postsSearch.rows);
+        const idSearch = await findUserIdDB(id);
+        if (idSearch.rowCount === 0) return res.sendStatus(401);
+        const postsSearch = await findTimeline(1);
+
+        const resp = [];
+        for (const e of postsSearch.rows) {
+            const meta = await getMetadata(e.link);
+            resp.push({
+                ...e, linkMetadata: meta
+            });
+        }
+        return res.send(resp);
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);
@@ -30,14 +39,42 @@ export async function getPostsDev(req, res) {
 
 
 export async function publish(req, res) {
-    const {description, link} = req.body
-    const {id} = res.locals.tokenData;
+    const { link, description } = req.body
+    const { id } = res.locals.tokenData
+
     try {
-        const tags = description.split(" ").filter(word => word[0] === "#").map(t => t.replace("#", "").replace(",", ""))
+        const tags = description.split(" ").filter(word => word[0] === "#").map(t => t.replace(/#/g, "").replace(",", "")).filter(tag => tag !== '');
         const response = await publishPost(id, description, link, tags)
-        res.status(201).send({id: response})
+        res.status(201).send({ id: response })
     } catch (err) {
         console.error(err)
         res.status(500).send(err.message)
+    }
+}
+
+export async function updatePost(req, res) {
+    const { description, postId } = req.body;
+    const { id } = res.locals.tokenData;
+    try {
+        const tags = description.split(" ").filter(word => word[0] === "#").map(t => t.replace(/#/g, "").replace(",", "")).filter(tag => tag !== '');
+        const response = await updatePostByPostId(description, postId, tags, id);
+        res.status(response).send(description);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+
+    }
+}
+
+export async function deletePost(req, res) {
+    const { postId } = req.body;
+    const { id } = res.locals.tokenData;
+
+    try{
+        const response = await deletePostByPostId(postId, id);
+        res.sendStatus(response)
+    }catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
     }
 }

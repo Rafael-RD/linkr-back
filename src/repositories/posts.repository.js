@@ -115,3 +115,13 @@ export async function deletePostByPostId(postId, userId) {
 
 	return 200;
 }
+
+export async function getUserIdForValidate(postId){
+	const user = await db.query(
+		`SELECT * FROM posts
+		WHERE id=$1;`,
+		[postId]
+	);
+
+	return(user.rows[0].userId);
+}

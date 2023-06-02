@@ -21,7 +21,7 @@ export function findTimeline(page=1){
 
 
 export async function getPostsDevRep () {
-	return await db.query(`SELECT * FROM post_tag;`)
+	return await db.query(`SELECT * FROM users;`)
 }
 
 export async function publishPost(id, description, link, tags) {

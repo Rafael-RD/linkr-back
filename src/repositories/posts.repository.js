@@ -2,7 +2,7 @@ import { db } from "../database/database.connection.js";
 
 export function findTimeline(page = 1) {
 	return db.query(`
-    SELECT posts.*, users."userName", users.picture, sub_query_like.like_users, sub_query_like.qtt_likes, sub_query_tag.tag_array
+    SELECT posts.*, users."userName", users.id AS userId, users.picture, sub_query_like.like_users, sub_query_like.qtt_likes, sub_query_tag.tag_array
     FROM posts LEFT JOIN (
 	    SELECT post_tag."postId", array_agg(tags.name) AS tag_array 
 	    FROM post_tag

@@ -1,4 +1,5 @@
 import { findUserPostsDB, searchUsersRep } from "../repositories/users.repository.js";
+import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function searchUsers(req, res){
     const {search} = req.body
@@ -16,9 +17,18 @@ export async function searchUsers(req, res){
 export async function getUserPosts(req, res){
     const {id}=req.params;
     
+    
     try {
         const userPosts=await findUserPostsDB(id);
-        return res.send(userPosts.rows)        
+        
+        const resp = [];
+        for (const e of userPosts.rows) {
+            const meta = await getMetadata(e.link);
+            resp.push({
+                ...e, linkMetadata: meta
+            });
+        }
+        return res.send(resp);     
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

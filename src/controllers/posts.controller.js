@@ -1,7 +1,6 @@
 import { deletePostByPostId, findTimeline, likesPostRep, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
-import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function getTimeline(req, res) {
     const { id } = res.locals.tokenData;
@@ -11,14 +10,7 @@ export async function getTimeline(req, res) {
         if (idSearch.rowCount === 0) return res.sendStatus(401);
         const postsSearch = await findTimeline(1);
 
-        const resp = [];
-        for (const e of postsSearch.rows) {
-            const meta = await getMetadata(e.link);
-            resp.push({
-                ...e, linkMetadata: meta
-            });
-        }
-        return res.send(resp);
+        return res.send(postsSearch.rows);
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

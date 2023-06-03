@@ -16,7 +16,6 @@ export async function getMetadata(link) {
     delete meta.responseBody;
     return meta;
   } catch (error) {
-    console.log(error)
     return null;
   }
 }

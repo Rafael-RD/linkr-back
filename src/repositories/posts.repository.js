@@ -13,7 +13,7 @@ export function findTimeline(page = 1) {
 	LEFT JOIN (
 		SELECT likes."postId", array_agg(users."userName") AS like_users, COUNT(likes.id) AS qtt_likes
 		FROM likes JOIN users ON likes."userId"=users.id
-		GROUP BY likes.id
+		GROUP BY likes."postId"
 	) sub_query_like ON posts.id=sub_query_like."postId"
     ORDER BY posts."createdAt" DESC 
     LIMIT 20 OFFSET $1;`, [(page - 1) * 20]);

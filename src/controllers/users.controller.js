@@ -1,5 +1,4 @@
 import { findUserPostsDB, searchUsersRep } from "../repositories/users.repository.js";
-import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function searchUsers(req, res){
     const {search} = req.body

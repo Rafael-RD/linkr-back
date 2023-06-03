@@ -1,10 +1,10 @@
 import urlMetadata from "url-metadata";
 import * as cheerio from "cheerio";
 import fetch from "node-fetch";
-
+global.fetch = fetch
 export async function getMetadata(link) {
   try {
-    const meta = await urlMetadata(link, { fetch, includeResponseBody: true });
+    const meta = await urlMetadata(link, { includeResponseBody: true });
     const $ = cheerio.load(meta.responseBody);
     meta.myTitle = $("title").text();
     const icon = findLargestIcon(
@@ -15,6 +15,7 @@ export async function getMetadata(link) {
     delete meta.responseBody;
     return meta;
   } catch (error) {
+    console.log(error)
     return null;
   }
 }

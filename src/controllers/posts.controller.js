@@ -1,7 +1,6 @@
 import { deletePostByPostId, findTimeline, likesPostRep, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
-import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function getTimeline(req, res) {
     const { id } = res.locals.tokenData;

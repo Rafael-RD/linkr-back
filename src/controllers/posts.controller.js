@@ -11,14 +11,7 @@ export async function getTimeline(req, res) {
         if (idSearch.rowCount === 0) return res.sendStatus(401);
         const postsSearch = await findTimeline(1);
 
-        const resp = [];
-        for (const e of postsSearch.rows) {
-            const meta = await getMetadata(e.link);
-            resp.push({
-                ...e, linkMetadata: meta
-            });
-        }
-        return res.send(resp);
+        return res.send(postsSearch.rows);
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

@@ -21,14 +21,7 @@ export async function getUserPosts(req, res){
     try {
         const userPosts=await findUserPostsDB(id);
         
-        const resp = [];
-        for (const e of userPosts.rows) {
-            const meta = await getMetadata(e.link);
-            resp.push({
-                ...e, linkMetadata: meta
-            });
-        }
-        return res.send(resp);     
+        return res.send(userPosts.rows);     
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

@@ -125,3 +125,55 @@ export async function getUserIdForValidate(postId){
 
 	return(user.rows[0].userId);
 }
+
+export async function likesPostRep (id, postId) {
+	const check = await db.query(
+		`SELECT * FROM likes
+		WHERE "userId"=$1 AND "postId"=$2;`,
+		[id, postId]
+	);
+	if(!check.rows[0]){
+		await db.query(
+			`INSERT INTO likes ("userId", "postId")
+			VALUES ($1, $2);`,
+			[id, postId]
+		);
+	}
+	else{
+		await db.query(
+			`DELETE FROM likes
+			WHERE "userId"=$1 AND "postId"=$2;`,
+			[id, postId]
+		);
+	}
+	const users = await db.query(
+		`SELECT 
+		COUNT(*) AS qtt_likes,
+		EXISTS(SELECT 1 FROM likes WHERE "postId" = $1 AND "userId" = $2) AS user_liked,
+		(
+		  SELECT 
+			ARRAY(
+			  SELECT 
+				users."userName"
+			  FROM 
+				likes
+				JOIN users ON users.id = likes."userId"
+			  WHERE 
+				likes."postId" = $1
+			  ORDER BY 
+				likes."createdAt" DESC
+			  LIMIT 5
+			)
+		) AS user_list
+	  FROM 
+		likes
+	  JOIN users ON users.id = likes."userId"
+	  WHERE 
+		likes."postId" = $1
+	  GROUP BY 
+		likes."postId";	
+		`,[postId, id]
+	);
+	
+	return(users)
+}

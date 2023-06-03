@@ -18,5 +18,3 @@ export const deletePublishSchema = Joi.object({
 export const searchSchema = Joi.object({
     search: Joi.string().required()
   });
-
-

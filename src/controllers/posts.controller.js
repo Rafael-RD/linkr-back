@@ -1,4 +1,4 @@
-import { deletePostByPostId, findTimeline, updatePostByPostId } from "../repositories/posts.repository.js";
+import { deletePostByPostId, findTimeline, likesPostRep, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
 import { getMetadata } from "../utils/metadata.utils.js";
@@ -76,5 +76,18 @@ export async function deletePost(req, res) {
     }catch (err) {
         console.error(err);
         res.status(500).send(err.message);
+    }
+}
+
+export async function likes(req, res) {
+    const { postId } = req.params
+    const { id } = res.locals.tokenData
+
+    try {
+        const response = await likesPostRep(id, postId)
+        return res.status(201).send(response.rows)
+    } catch (err) {
+        console.error(err)
+        res.status(501).send(err.message)
     }
 }

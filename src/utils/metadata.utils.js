@@ -1,5 +1,7 @@
 import urlMetadata from "url-metadata";
 import * as cheerio from "cheerio";
+import fetch from "node-fetch";
+global.fetch = fetch;
 
 export async function getMetadata(link) {
   try {

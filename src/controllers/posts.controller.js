@@ -67,7 +67,7 @@ export async function updatePost(req, res) {
 }
 
 export async function deletePost(req, res) {
-    const { postId } = req.body;
+    const { postId } = req.params;
     const { id } = res.locals.tokenData;
 
     try{

@@ -102,6 +102,11 @@ export async function updatePostByPostId(description, postId, tags, userId) {
 export async function deletePostByPostId(postId, userId) {
 
 	await db.query(
+		`DELETE FROM likes
+			WHERE "postId"=$1;`,
+		[postId]
+	);
+	await db.query(
 		`DELETE FROM post_tag 
 			WHERE "postId"=$1;`,
 		[postId,]

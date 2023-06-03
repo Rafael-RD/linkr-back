@@ -1,5 +1,4 @@
 import { getTagPosts, getTrendingDB } from "../repositories/tags.repository.js";
-import { getMetadata } from "../utils/metadata.utils.js";
 
 export async function trending(req, res) {
   try {

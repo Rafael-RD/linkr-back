@@ -74,7 +74,6 @@ export async function updatePostByPostId(description, postId, tags, userId) {
 			`DELETE FROM post_tag
 			WHERE "postId"=$1;`, [postId]
 		);
-		console.log(tags)
 		if (tags.length > 0) {
 			const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
 			const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
@@ -99,7 +98,6 @@ export async function updatePostByPostId(description, postId, tags, userId) {
 			const final = await db.query(queryTagPost, [postId, ...existingIds]);
 		}
 	} else {
-		console.log("erro 403")
 		return 403;
 	}
 

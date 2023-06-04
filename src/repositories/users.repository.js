@@ -6,6 +6,5 @@ export function findUserIdDB(id){
 }
 
 export function searchUsersRep(search){
-    console.log(search)
     return db.query(`SELECT "id", "userName", "picture", "email" FROM users WHERE "userName" ILIKE $1 LIMIT 3 `, [search + "%"]);
 }

@@ -2,7 +2,6 @@ import { findUserPostsDB, searchUsersRep } from "../repositories/users.repositor
 
 export async function searchUsers(req, res){
     const {search} = req.body
-    console.log(search)
     try {
         const getUsers=await searchUsersRep(search);
         

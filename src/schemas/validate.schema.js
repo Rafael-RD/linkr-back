@@ -11,10 +11,6 @@ export const editPublishSchema = Joi.object({
     postId: Joi.number().integer()
 });
 
-export const deletePublishSchema = Joi.object({
-    postId: Joi.number().integer()
-});
-
 export const searchSchema = Joi.object({
     search: Joi.string().required()
   });

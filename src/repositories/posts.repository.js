@@ -20,7 +20,7 @@ export function findTimeline(page = 1) {
 }
 
 
-export async function getPostsDevRep () {
+export async function getPostsDevRep() {
 	return await db.query(`SELECT * FROM users;`)
 }
 
@@ -60,86 +60,100 @@ export async function publishPost(id, description, link, tags) {
 }
 
 export async function updatePostByPostId(description, postId, tags, userId) {
-	await db.query(
-		`UPDATE posts 
+	const id = await getUserIdForValidate(postId);
+
+	if (userId === id) {
+		await db.query(
+			`UPDATE posts 
 			SET description = $1
 			WHERE id=$2;`,
-		[description, postId]
-	);
+			[description, postId]
+		);
 
-	await db.query(
-		`DELETE FROM post_tag
+		await db.query(
+			`DELETE FROM post_tag
 			WHERE "postId"=$1;`, [postId]
-	);
-	console.log(tags)
-	if (tags.length > 0) {
-		const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
-		const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
-		const { rows } = await db.query(queryFindTags, [...tags]);
+		);
+		if (tags.length > 0) {
+			const queryTags = tags.map((t, index) => `$${index + 1}`).join(", ")
+			const queryFindTags = `SELECT * FROM tags WHERE name IN (${queryTags});`;
+			const { rows } = await db.query(queryFindTags, [...tags]);
 
-		//Array de ids de tags que já existem no banco de dados
-		const existingIds = [...rows].map(tag => tag.id);
-		//Array de nomes de tags que já existem no banco de dados
-		const existingNames = [...rows].map(tag => tag.name);
+			//Array de ids de tags que já existem no banco de dados
+			const existingIds = [...rows].map(tag => tag.id);
+			//Array de nomes de tags que já existem no banco de dados
+			const existingNames = [...rows].map(tag => tag.name);
 
-		//Array de tags que precisam ser inseridas
-		const filteredTags = tags.filter(tag => !existingNames.includes(tag))
-		if (filteredTags.length > 0) {
-			const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
-			const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
-			const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
-			createdTagIds.forEach(tagId => existingIds.push(tagId.id));
+			//Array de tags que precisam ser inseridas
+			const filteredTags = tags.filter(tag => !existingNames.includes(tag))
+			if (filteredTags.length > 0) {
+				const insertIntoTags = filteredTags.map((t, index) => `($${index + 1})`).join(", ");
+				const tagQuery = `INSERT INTO tags (name) VALUES ${insertIntoTags} RETURNING id;`;
+				const { rows: createdTagIds } = await db.query(tagQuery, filteredTags)
+				createdTagIds.forEach(tagId => existingIds.push(tagId.id));
+			}
+
+			const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
+			const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
+			const final = await db.query(queryTagPost, [postId, ...existingIds]);
 		}
-
-		const queryIds = existingIds.map((t, index) => `($1, $${index + 2})`).join(", ");
-		const queryTagPost = `INSERT INTO post_tag ("postId", "tagId") VALUES ${queryIds};`
-		const final = await db.query(queryTagPost, [postId, ...existingIds]);
+	} else {
+		return 403;
 	}
 
 	return 200;
 }
 
 export async function deletePostByPostId(postId, userId) {
+	const id = await getUserIdForValidate(postId);
 
-	await db.query(
-		`DELETE FROM post_tag 
-			WHERE "postId"=$1;`,
-		[postId,]
-	);
-	await db.query(
-		`DELETE FROM posts
-			WHERE id=$1;`,
-		[postId]
-	);
-
+	if (userId === id) {
+		await db.query(
+			`DELETE FROM likes
+				WHERE "postId"=$1;`,
+			[postId]
+		);
+		await db.query(
+			`DELETE FROM post_tag 
+				WHERE "postId"=$1;`,
+			[postId,]
+		);
+		await db.query(
+			`DELETE FROM posts
+				WHERE id=$1;`,
+			[postId]
+		);
+	} else {
+		return 403;
+	}
 
 	return 200;
 }
 
-export async function getUserIdForValidate(postId){
+export async function getUserIdForValidate(postId) {
 	const user = await db.query(
 		`SELECT * FROM posts
 		WHERE id=$1;`,
 		[postId]
 	);
 
-	return(user.rows[0].userId);
+	return (user.rows[0].userId);
 }
 
-export async function likesPostRep (id, postId) {
+export async function likesPostRep(id, postId) {
 	const check = await db.query(
 		`SELECT * FROM likes
 		WHERE "userId"=$1 AND "postId"=$2;`,
 		[id, postId]
 	);
-	if(!check.rows[0]){
+	if (!check.rows[0]) {
 		await db.query(
 			`INSERT INTO likes ("userId", "postId")
 			VALUES ($1, $2);`,
 			[id, postId]
 		);
 	}
-	else{
+	else {
 		await db.query(
 			`DELETE FROM likes
 			WHERE "userId"=$1 AND "postId"=$2;`,
@@ -172,8 +186,8 @@ export async function likesPostRep (id, postId) {
 		likes."postId" = $1
 	  GROUP BY 
 		likes."postId";	
-		`,[postId, id]
+		`, [postId, id]
 	);
-	
-	return(users)
+
+	return (users)
 }

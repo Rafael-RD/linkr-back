@@ -191,3 +191,14 @@ export async function likesPostRep(id, postId) {
 
 	return (users)
 }
+
+export function makeNewCommentDB(userId, postId, content) {
+	const result = db.query(
+	  `
+		INSERT INTO comments ("userId", "postId", content)
+		VALUES ($1, $2, $3);
+	  `,
+	  [userId, postId, content]
+	);
+	return result;
+  }

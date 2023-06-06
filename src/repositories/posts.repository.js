@@ -191,3 +191,16 @@ export async function likesPostRep(id, postId) {
 
 	return (users)
 }
+
+export async function postSharePost(userId, postId){
+	await db.query(
+		`INSERT INTO reposts ("userId", "postId")
+			VALUES ($1, $2);`, 
+		[userId, postId]
+	);
+}
+
+export async function getSharePost(){
+	const share = await db.query(`SELECT * FROM reposts;`);
+	return share;
+}

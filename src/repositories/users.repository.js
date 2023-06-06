@@ -5,8 +5,15 @@ export function findUserIdDB(id) {
     return db.query("SELECT * FROM users WHERE id=$1", [id]);
 }
 
-export function searchUsersRep(search){
-    return db.query(`SELECT "id", "userName", "picture", "email" FROM users WHERE "userName" ILIKE $1 LIMIT 3 `, [search + "%"]);
+export function searchUsersRep(id, search){
+    return db.query(`
+    SELECT "id", "userName", "picture", "email",
+    EXISTS (
+        SELECT 1 FROM follows WHERE "userId" = $1 AND followed = users.id
+    ) AS is_following
+    FROM users WHERE "userName" ILIKE $2
+    ORDER BY is_following DESC, "userName" ASC
+    LIMIT 3 `, [id, search + "%"]);
 }
 
 export function findUserPostsDB(userId, page=1) {

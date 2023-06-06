@@ -28,3 +28,33 @@ export function findUserPostsDB(userId, page=1) {
         ORDER BY posts."createdAt" DESC 
         LIMIT 20 OFFSET $2;`, [userId, (page - 1) * 20]);
 }
+
+export async function followUserRep(userId, followedId) {
+   
+    const verify = await db.query(`
+        SELECT * FROM follows WHERE "userId"=$1 AND followed=$2`
+        , [userId, followedId]);
+        
+    if(verify.rows[0]) {
+        await db.query(
+			`DELETE FROM follows
+			WHERE "userId"=$1 AND followed=$2;
+            `,[userId, followedId]);
+        return "Deleted"
+    }
+    else{
+        await db.query(`
+            INSERT INTO follows ("userId", followed)
+            VALUES ($1, $2);
+            `, [userId, followedId]);
+        return "Inserted"
+    }
+    
+}
+
+export async function getFollowRep(id, followedId) {   
+    return db.query(`
+        SELECT * FROM follows WHERE "userId"=$1 AND followed=$2`
+        , [id, followedId]);  
+    
+}

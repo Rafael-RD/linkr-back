@@ -15,13 +15,14 @@ export function findTimeline(page = 1) {
 		FROM likes JOIN users ON likes."userId"=users.id
 		GROUP BY likes."postId"
 	) sub_query_like ON posts.id=sub_query_like."postId"
+	WHERE posts."userId"=4 OR posts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=4)
     ORDER BY posts."createdAt" DESC 
     LIMIT 20 OFFSET $1;`, [(page - 1) * 20]);
 }
 
 
 export async function getPostsDevRep() {
-	return await db.query(`SELECT * FROM users;`)
+	return await db.query(`SELECT * FROM follows;`)
 }
 
 export async function publishPost(id, description, link, tags) {

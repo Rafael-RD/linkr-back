@@ -8,7 +8,7 @@ export async function getTimeline(req, res) {
     try {
         const idSearch = await findUserIdDB(id);
         if (idSearch.rowCount === 0) return res.sendStatus(401);
-        const postsSearch = await findTimeline(1);
+        const postsSearch = await findTimeline(id, 1);
 
         return res.send(postsSearch.rows);
     } catch (error) {

@@ -34,7 +34,6 @@ export async function followUser(req, res){
         if(userId == followedId){
             return res.send("It's not possible follow yourself")
         } 
-
         const follow= await followUserRep(userId, followedId);        
         return res.send(follow);
     } catch (error) {
@@ -54,7 +53,6 @@ export async function getFollow(req, res){
             return res.send("yourself")
         } 
         const userPosts = await getFollowRep(id, followedId);
-        
         return res.send(userPosts.rows);     
     } catch (error) {
         console.error(error);

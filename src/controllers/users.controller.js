@@ -2,8 +2,9 @@ import { findUserIdDB, findUserPostsDB, followUserRep, getFollowRep, searchUsers
 
 export async function searchUsers(req, res){
     const {search} = req.body
+    const { id } = res.locals.tokenData
     try {
-        const getUsers=await searchUsersRep(search);
+        const getUsers=await searchUsersRep(id, search);
         
         return res.send(getUsers.rows);
     } catch (error) {

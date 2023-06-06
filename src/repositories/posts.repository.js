@@ -1,6 +1,6 @@
 import { db } from "../database/database.connection.js";
 
-export function findTimeline(page = 1) {
+export function findTimeline(id, page = 1) {
 	return db.query(`
     SELECT posts.*, users."userName", users.id AS userId, users.picture, sub_query_like.like_users, sub_query_like.qtt_likes, sub_query_tag.tag_array
     FROM posts LEFT JOIN (
@@ -15,9 +15,9 @@ export function findTimeline(page = 1) {
 		FROM likes JOIN users ON likes."userId"=users.id
 		GROUP BY likes."postId"
 	) sub_query_like ON posts.id=sub_query_like."postId"
-	WHERE posts."userId"=4 OR posts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=4)
+	WHERE posts."userId"=$2 OR posts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$2)
     ORDER BY posts."createdAt" DESC 
-    LIMIT 20 OFFSET $1;`, [(page - 1) * 20]);
+    LIMIT 20 OFFSET $1;`, [(page - 1) * 20, id]);
 }
 
 

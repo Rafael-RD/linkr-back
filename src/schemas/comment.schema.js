@@ -1,5 +1,5 @@
 import Joi from "joi";
 
 export const commentSchema = Joi.object({
-  content: Joi.string().required(),
+  content: Joi.string().max(255).required(),
 });

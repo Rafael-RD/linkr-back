@@ -22,7 +22,7 @@ export function findTimeline(page = 1) {
 
 
 export async function getPostsDevRep() {
-	return await db.query(`SELECT * FROM users;`)
+	return await db.query(`SELECT * FROM follows;`)
 }
 
 export async function publishPost(id, description, link, tags) {

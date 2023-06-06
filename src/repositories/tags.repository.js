@@ -41,7 +41,12 @@ export function getTagPosts(name, userId) {
         SELECT 1 FROM likes 
         WHERE likes."postId" = posts.id
         AND likes."userId" = $2
-    ) AS "hasLiked"
+    ) AS "hasLiked",
+    (
+      SELECT COUNT(*) 
+      FROM comments 
+      WHERE comments."postId" = posts.id
+    ) AS qtt_comments
     FROM posts
     JOIN users on users.id = posts."userId"
     JOIN post_tag pt on pt."postId" = posts.id

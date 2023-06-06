@@ -202,3 +202,36 @@ export function makeNewCommentDB(userId, postId, content) {
 	);
 	return result;
   }
+
+  export function getPostCommentsDB(userId, postId){
+	const result = db.query(
+		`
+			SELECT 
+			users.id,
+				users."userName", 
+				users.picture,
+				comments.content,
+				EXISTS (
+					SELECT 1 FROM follows WHERE "userId" = $1 AND followed = users.id
+				) AS is_following,
+				comments."userId" = posts."userId" AS is_author
+			FROM
+				comments
+			JOIN users ON users.id = comments."userId"
+			JOIN posts ON posts.id = comments."postId"
+				WHERE comments."postId" = $2
+			ORDER BY comments."createdAt" ASC;
+		`,
+		[userId, postId]
+	);
+	return result;
+  }
+
+  export function findPostIdDB(postId){
+	const result = db.query(
+		`
+			SELECT 1 FROM posts WHERE posts.id = $1;
+		`, [postId]
+	);
+	return result
+  }

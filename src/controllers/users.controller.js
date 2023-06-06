@@ -19,14 +19,13 @@ export async function getUserPosts(req, res){
     try {
         let resp=[];
         const userPosts=await findUserPostsDB(id);
-        console.log(userPosts.rows[0])
         if(userPosts.rowCount===0){
             const userSearch=await findUserIdDB(id);
             userSearch.rows[0].noPosts=true;
-            resp=userSearch.rows
-        }else resp=userPosts.rows
+            resp=userSearch.rows;
+        }else resp=userPosts.rows;
         
-        return res.send(resp);     
+        return res.send(resp); 
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

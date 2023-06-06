@@ -1,4 +1,4 @@
-import { findUserPostsDB, followUserRep, getFollowRep, searchUsersRep } from "../repositories/users.repository.js";
+import { findUserIdDB, findUserPostsDB, followUserRep, getFollowRep, searchUsersRep } from "../repositories/users.repository.js";
 
 export async function searchUsers(req, res){
     const {search} = req.body
@@ -16,11 +16,16 @@ export async function searchUsers(req, res){
 export async function getUserPosts(req, res){
     const {id}=req.params;
     
-    
     try {
+        let resp=[];
         const userPosts=await findUserPostsDB(id);
+        if(userPosts.rowCount===0){
+            const userSearch=await findUserIdDB(id);
+            userSearch.rows[0].noPosts=true;
+            resp=userSearch.rows;
+        }else resp=userPosts.rows;
         
-        return res.send(userPosts.rows);     
+        return res.send(resp); 
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

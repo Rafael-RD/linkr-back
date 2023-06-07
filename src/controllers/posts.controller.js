@@ -1,4 +1,4 @@
-import { deletePostByPostId, findTimeline, getPostCommentsDB, likesPostRep, makeNewCommentDB, updatePostByPostId } from "../repositories/posts.repository.js";
+import { deletePostByPostId, findTimeline, getSharePost, getPostCommentsDB, likesPostRep, postSharePost, makeNewCommentDB, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
 
@@ -84,6 +84,27 @@ export async function likes(req, res) {
     }
 }
 
+export async function sharePostByPostId(req, res) {
+    const { postId } = req.body;
+    const { id } = res.locals.tokenData;
+    try {
+        const response = await postSharePost(id, postId);
+        res.status(201).send({postId});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+    }
+}
+
+export async function getSharePostByPostId(req, res) {
+    try {
+        const response = await getSharePost();
+        res.status(200).send(response);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err.message);
+    }
+}
 export async function newComment(req, res){
     const { postId } = req.params;
     const { id:userId } = res.locals.tokenData;

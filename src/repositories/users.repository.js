@@ -65,3 +65,9 @@ export async function getFollowRep(id, followedId) {
         , [id, followedId]);  
     
 }
+
+export async function ifFollowRep(id) {   
+    return db.query(`
+        SELECT * FROM follows WHERE "userId"=$1`
+        , [id]);  
+}

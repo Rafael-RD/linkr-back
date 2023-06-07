@@ -20,7 +20,6 @@ export function findTimeline(id, page = 1) {
     LIMIT 20 OFFSET $1;`, [(page - 1) * 20, id]);
 }
 
-
 export async function getPostsDevRep() {
 	return await db.query(`SELECT * FROM follows;`)
 }

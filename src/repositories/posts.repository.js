@@ -171,6 +171,16 @@ export async function deletePostByPostId(postId, userId) {
 
 	if (userId === id) {
 		await db.query(
+			`DELETE FROM comments
+				WHERE "postId"=$1;`,
+			[postId]
+		);
+		await db.query(
+			`DELETE FROM reposts
+				WHERE "postId"=$1;`,
+			[postId]
+		);
+		await db.query(
 			`DELETE FROM likes
 				WHERE "postId"=$1;`,
 			[postId]

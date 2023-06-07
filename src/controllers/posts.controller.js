@@ -1,4 +1,4 @@
-import { deletePostByPostId, findTimeline, getPostCommentsDB, likesPostRep, makeNewCommentDB, updatePostByPostId } from "../repositories/posts.repository.js";
+import { deletePostByPostId, findTimeline, getPostCommentsDB, getPostsCounterDB, likesPostRep, makeNewCommentDB, updatePostByPostId } from "../repositories/posts.repository.js";
 import { findUserIdDB } from "../repositories/users.repository.js";
 import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js"
 
@@ -106,6 +106,20 @@ export async function listComments(req, res){
         const result = await getPostCommentsDB(userId, postId);
 
         res.send(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+}
+
+export async function newPostsCounter(req, res){
+    const { createdAt } = req.params;
+    const { id:userId } = res.locals.tokenData;
+    const treatedDate = createdAt === "null" ? null : new Date(createdAt);
+
+    try {
+        const result = await getPostsCounterDB(userId, treatedDate);
+        res.send(result.rows[0]);
     } catch (error) {
         console.error(error);
         res.status(500).send(error.message);

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import tokenValidation from "../middlewares/tokenValidation.middleware.js";
-import { deletePost, getSharePostByPostId, getTimeline, likes, sharePostByPostId, listComments, newComment, updatePost } from "../controllers/posts.controller.js";
+import { deletePost, getSharePostByPostId, getTimeline, likes, sharePostByPostId, listComments, newComment, newPostsCounter, newPostsUpdate, updatePost } from "../controllers/posts.controller.js";
 import schemaValidation from "../middlewares/schemaValidation.middleware.js";
 import { editPublishSchema, publishSchema } from "../schemas/validate.schema.js";
 import { getPostsDev, publish } from "../controllers/posts.controller.js";
@@ -19,5 +19,7 @@ postsRouter.post("/share", tokenValidation, sharePostByPostId)
 postsRouter.get("/share", tokenValidation, getSharePostByPostId)
 postsRouter.post("/post/comments/new/:postId", postIdValidation, tokenValidation, schemaValidation(commentSchema), newComment)
 postsRouter.get("/post/comments/list/:postId", postIdValidation, tokenValidation, listComments)
+postsRouter.get("/post/list/counter/:createdAt", tokenValidation, newPostsCounter)
+postsRouter.get("/post/list/update/:createdAt", tokenValidation, newPostsUpdate)
 
 export default postsRouter;

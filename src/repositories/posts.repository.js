@@ -383,3 +383,13 @@ export function makeNewCommentDB(userId, postId, content) {
 	`, [userId, createdAt]);
 	return result;
   }
+
+  export function getPostsUpdateDB(userId, createdAt) {
+	const result = db.query(
+	  `
+	  `, [userId, createdAt]);
+
+	return result;
+  }
+  
+  

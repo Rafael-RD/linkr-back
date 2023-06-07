@@ -76,7 +76,7 @@ export function findTimeline(id, page = 1) {
 			FROM likes JOIN users ON likes."userId"=users.id
 			GROUP BY likes."postId"
 			) sub_query_like ON posts.id=sub_query_like."postId"
-			WHERE reposts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$2)
+			WHERE reposts."userId"=$2 OR reposts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$2)
 		)
 		ORDER BY "createdAt" DESC
 		LIMIT 10 OFFSET $1;`, [(page - 1) * 20, id]);

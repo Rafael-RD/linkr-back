@@ -89,7 +89,7 @@ export async function sharePostByPostId(req, res) {
     const { id } = res.locals.tokenData;
     try {
         const response = await postSharePost(id, postId);
-        res.status(201).send({postId});
+        res.status(response.status).send(response.postInfo);
     } catch (err) {
         console.error(err);
         res.status(500).send(err.message);

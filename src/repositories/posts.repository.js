@@ -265,11 +265,27 @@ export async function likesPostRep(id, postId) {
 }
 
 export async function postSharePost(userId, postId){
-	await db.query(
-		`INSERT INTO reposts ("userId", "postId")
-			VALUES ($1, $2);`, 
+	const userRePost =  await db.query(
+		`SELECT * FROM reposts
+			WHERE "userId"=$1 AND "postId"=$2;`, 
 		[userId, postId]
 	);
+	if(userRePost.rowCount === 0){
+		const repostId = await db.query(
+			`INSERT INTO reposts ("userId", "postId")
+				VALUES ($1, $2)
+				RETURNING id;`, 
+			[userId, postId]
+		);
+		return {status:201, postInfo: {postId, userId, repostId: repostId.rows[0].id}};
+	}else if(userRePost.rowCount > 0){
+		await db.query(
+			`DELETE FROM reposts
+				WHERE "userId"=$1 AND "postId"=$2;`, 
+			[userId, postId]
+		);
+		return {status:200, postInfo: postId};
+	}	
 }
 
 export async function getSharePost(){

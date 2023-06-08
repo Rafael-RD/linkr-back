@@ -38,7 +38,7 @@ export async function publish(req, res) {
     const { id } = res.locals.tokenData
 
     try {
-        const tags = description.split(" ").filter(word => word[0] === "#").map(t => t.replace(/#/g, "").replace(",", "")).filter(tag => tag !== '');
+        const tags = description.match(/#([^\s.,!?\-@#$%*)]+)/g)?.map(word => word.slice(1)) || [];
         const response = await publishPost(id, description, link, tags)
         res.status(201).send({ id: response })
     } catch (err) {
@@ -92,7 +92,7 @@ export async function sharePostByPostId(req, res) {
     const { id } = res.locals.tokenData;
     try {
         const response = await postSharePost(id, postId);
-        res.status(201).send({ postId });
+        res.status(response.status).send(response.postInfo);
     } catch (err) {
         console.error(err);
         res.status(500).send(err.message);

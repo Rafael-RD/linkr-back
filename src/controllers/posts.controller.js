@@ -4,10 +4,10 @@ import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js
 
 export async function getTimeline(req, res) {
     const { id } = res.locals.tokenData;
-    const {createdAt}=req.query;
+    const { createdAt } = req.query;
 
-    const date=createdAt?(new Date(createdAt)):(new Date())
-    
+    const date = createdAt ? (new Date(createdAt)) : null
+
     try {
         const idSearch = await findUserIdDB(id);
         if (idSearch.rowCount === 0) return res.sendStatus(401);
@@ -65,10 +65,10 @@ export async function deletePost(req, res) {
     const { postId } = req.params;
     const { id } = res.locals.tokenData;
 
-    try{
+    try {
         const response = await deletePostByPostId(postId, id);
         res.sendStatus(response)
-    }catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).send(err.message);
     }
@@ -92,7 +92,7 @@ export async function sharePostByPostId(req, res) {
     const { id } = res.locals.tokenData;
     try {
         const response = await postSharePost(id, postId);
-        res.status(201).send({postId});
+        res.status(201).send({ postId });
     } catch (err) {
         console.error(err);
         res.status(500).send(err.message);
@@ -108,14 +108,14 @@ export async function getSharePostByPostId(req, res) {
         res.status(500).send(err.message);
     }
 }
-export async function newComment(req, res){
+export async function newComment(req, res) {
     const { postId } = req.params;
-    const { id:userId } = res.locals.tokenData;
+    const { id: userId } = res.locals.tokenData;
     const { content } = req.body;
     try {
         const result = await makeNewCommentDB(userId, postId, content);
-        if(!result.rowCount) return res.sendStatus(422);
-        
+        if (!result.rowCount) return res.sendStatus(422);
+
         res.sendStatus(201);
     } catch (error) {
         console.error(error);
@@ -123,9 +123,9 @@ export async function newComment(req, res){
     }
 }
 
-export async function listComments(req, res){
+export async function listComments(req, res) {
     const { postId } = req.params;
-    const { id:userId } = res.locals.tokenData;
+    const { id: userId } = res.locals.tokenData;
     try {
         const result = await getPostCommentsDB(userId, postId);
 
@@ -136,9 +136,9 @@ export async function listComments(req, res){
     }
 }
 
-export async function newPostsCounter(req, res){
+export async function newPostsCounter(req, res) {
     const { createdAt } = req.params;
-    const { id:userId } = res.locals.tokenData;
+    const { id: userId } = res.locals.tokenData;
     const treatedDate = createdAt === "null" ? null : new Date(createdAt);
 
     try {
@@ -150,14 +150,14 @@ export async function newPostsCounter(req, res){
     }
 }
 
-export async function newPostsUpdate(req, res){
+export async function newPostsUpdate(req, res) {
     const { createdAt } = req.params;
-    const { id:userId } = res.locals.tokenData;
+    const { id: userId } = res.locals.tokenData;
     const treatedDate = createdAt === "null" ? null : new Date(createdAt);
 
     try {
         const newPosts = await getPostsCounterDB(userId, treatedDate);
-        const newLimit = Number(newPosts.rows[0].new_post_counts) -1;
+        const newLimit = Number(newPosts.rows[0].new_post_counts) - 1;
         const result = await getPostsUpdateDB(userId, newLimit);
         res.send(result.rows);
     } catch (error) {

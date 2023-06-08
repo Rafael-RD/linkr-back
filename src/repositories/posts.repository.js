@@ -38,7 +38,7 @@ export function findTimeline(id, createdAt) {
 			GROUP BY likes."postId"
 		) sub_query_like ON p1.id=sub_query_like."postId"
 		WHERE (p1."userId"=$1 OR p1."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$1))
-		AND p1."createdAt"<$2
+		AND ($2::timestamp IS NULL OR p1."createdAt"<$2)
 
 		UNION(
 			SELECT 
@@ -78,7 +78,7 @@ export function findTimeline(id, createdAt) {
 			GROUP BY likes."postId"
 			) sub_query_like ON posts.id=sub_query_like."postId"
 			WHERE (reposts."userId"=$1 OR reposts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$1))
-			AND reposts."createdAt"<$2
+			AND ($2::timestamp IS NULL OR reposts."createdAt"<$2)
 		)
 		ORDER BY "createdAt" DESC
 		LIMIT 10;`, [id, createdAt]);
@@ -266,31 +266,31 @@ export async function likesPostRep(id, postId) {
 	return (users)
 }
 
-export async function postSharePost(userId, postId){
+export async function postSharePost(userId, postId) {
 	await db.query(
 		`INSERT INTO reposts ("userId", "postId")
-			VALUES ($1, $2);`, 
+			VALUES ($1, $2);`,
 		[userId, postId]
 	);
 }
 
-export async function getSharePost(){
+export async function getSharePost() {
 	const share = await db.query(`SELECT * FROM reposts;`);
 	return share;
 }
 
 export function makeNewCommentDB(userId, postId, content) {
 	const result = db.query(
-	  `
+		`
 		INSERT INTO comments ("userId", "postId", content)
 		VALUES ($1, $2, $3);
 	  `,
-	  [userId, postId, content]
+		[userId, postId, content]
 	);
 	return result;
-  }
+}
 
-  export function getPostCommentsDB(userId, postId){
+export function getPostCommentsDB(userId, postId) {
 	const result = db.query(
 		`
 			SELECT 
@@ -312,18 +312,18 @@ export function makeNewCommentDB(userId, postId, content) {
 		[userId, postId]
 	);
 	return result;
-  }
+}
 
-  export function findPostIdDB(postId){
+export function findPostIdDB(postId) {
 	const result = db.query(
 		`
 			SELECT 1 FROM posts WHERE posts.id = $1;
 		`, [postId]
 	);
 	return result
-  }
+}
 
-  export function getPostsCounterDB(userId, createdAt){
+export function getPostsCounterDB(userId, createdAt) {
 	const result = db.query(`
 	SELECT COUNT(*) AS new_post_counts, $2::timestamp AS param_createdAt
 	FROM(
@@ -407,11 +407,11 @@ export function makeNewCommentDB(userId, postId, content) {
 	WHERE $2 IS NULL OR subquery."createdAt" >= $2::timestamp;
 	`, [userId, createdAt]);
 	return result;
-  }
+}
 
-  export function getPostsUpdateDB(userId, limit) {
+export function getPostsUpdateDB(userId, limit) {
 	const result = db.query(
-	  `	
+		`	
 	  SELECT 
 	  p1.description, 
 	  p1.id, 
@@ -492,6 +492,5 @@ export function makeNewCommentDB(userId, postId, content) {
 	  `, [userId, limit]);
 
 	return result;
-  }
-  
-  
+}
+

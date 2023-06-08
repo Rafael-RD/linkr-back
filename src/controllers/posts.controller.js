@@ -4,11 +4,14 @@ import { getPostsDevRep, publishPost } from "../repositories/posts.repository.js
 
 export async function getTimeline(req, res) {
     const { id } = res.locals.tokenData;
+    const {createdAt}=req.query;
 
+    const date=createdAt?(new Date(createdAt)):(new Date())
+    
     try {
         const idSearch = await findUserIdDB(id);
         if (idSearch.rowCount === 0) return res.sendStatus(401);
-        const postsSearch = await findTimeline(id, 1);
+        const postsSearch = await findTimeline(id, date);
 
         return res.send(postsSearch.rows);
     } catch (error) {

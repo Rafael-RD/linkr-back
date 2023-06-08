@@ -1,6 +1,6 @@
 import { db } from "../database/database.connection.js";
 
-export function findTimeline(id, page = 1) {
+export function findTimeline(id, createdAt) {
 	return db.query(`
 		SELECT 
 		p1.description, 
@@ -20,7 +20,7 @@ export function findTimeline(id, page = 1) {
 		EXISTS (
 			SELECT 1 FROM likes 
 			WHERE likes."postId" = p1.id
-			AND likes."userId" = $2
+			AND likes."userId" = $1
 		) AS "hasLiked",
 		(
 			SELECT COUNT(*) 
@@ -37,7 +37,8 @@ export function findTimeline(id, page = 1) {
 			FROM likes JOIN users ON likes."userId"=users.id
 			GROUP BY likes."postId"
 		) sub_query_like ON p1.id=sub_query_like."postId"
-		WHERE p1."userId"=$2 OR p1."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$2)
+		WHERE (p1."userId"=$1 OR p1."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$1))
+		AND p1."createdAt"<$2
 
 		UNION(
 			SELECT 
@@ -58,7 +59,7 @@ export function findTimeline(id, page = 1) {
 			EXISTS (
 				SELECT 1 FROM likes 
 				WHERE likes."postId" = posts.id
-				AND likes."userId" = $2
+				AND likes."userId" = $1
 			) AS "hasLiked",
 			(
 				SELECT COUNT(*) 
@@ -76,10 +77,11 @@ export function findTimeline(id, page = 1) {
 			FROM likes JOIN users ON likes."userId"=users.id
 			GROUP BY likes."postId"
 			) sub_query_like ON posts.id=sub_query_like."postId"
-			WHERE reposts."userId"=$2 OR reposts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$2)
+			WHERE (reposts."userId"=$1 OR reposts."userId" IN(SELECT follows.followed from follows WHERE follows."userId"=$1))
+			AND reposts."createdAt"<$2
 		)
 		ORDER BY "createdAt" DESC
-		LIMIT 10 OFFSET $1;`, [(page - 1) * 20, id]);
+		LIMIT 10;`, [id, createdAt]);
 }
 
 export async function getPostsDevRep() {

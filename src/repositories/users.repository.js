@@ -18,22 +18,83 @@ export function searchUsersRep(id, search){
 
 export function findUserPostsDB(userId, page=1) {
     return db.query(`
-        SELECT posts.*, users."userName", users.id AS userId, users.picture, sub_query_like.like_users, sub_query_like.qtt_likes, sub_query_tag.tag_array
-        FROM posts LEFT JOIN (
-            SELECT post_tag."postId", array_agg(tags.name) AS tag_array 
-            FROM post_tag
-            JOIN tags ON tags.id=post_tag."tagId"
-            GROUP BY post_tag."postId"
-            ) sub_query_tag ON posts.id=sub_query_tag."postId" 
-        JOIN users ON posts."userId"=users.id
+        SELECT 
+        p1.description, 
+        p1.id, 
+        p1."userId", 
+        p1.link,
+        p1."createdAt", 
+        users."userName", 
+        users.picture,
+        (
+            SELECT COUNT(*) 
+            FROM comments 
+            WHERE comments."postId" = p1.id
+        ) AS qtt_comments,
+        sub_query_like.like_users, 
+        sub_query_like.qtt_likes,
+        EXISTS (
+            SELECT 1 FROM likes 
+            WHERE likes."postId" = p1.id
+            AND likes."userId" = $1
+        ) AS "hasLiked",
+        (
+            SELECT COUNT(*) 
+            FROM reposts r
+            WHERE r."postId" = p1.id
+        ) AS qtt_reposts,
+        NULL AS "repostUserName", 
+        NULL AS "repostId"
+
+        FROM posts p1
+        JOIN users ON p1."userId"=users.id
         LEFT JOIN (
             SELECT likes."postId", array_agg(users."userName") AS like_users, COUNT(likes.id) AS qtt_likes
             FROM likes JOIN users ON likes."userId"=users.id
             GROUP BY likes."postId"
-        ) sub_query_like ON posts.id=sub_query_like."postId"
-        WHERE posts."userId" = $1
-        ORDER BY posts."createdAt" DESC 
-        LIMIT 20 OFFSET $2;`, [userId, (page - 1) * 20]);
+        ) sub_query_like ON p1.id=sub_query_like."postId"
+        WHERE p1."userId"=$1
+
+        UNION(
+            SELECT 
+            posts.description, 
+            posts.id, 
+            posts."userId", 
+            posts.link,
+            reposts."createdAt", 
+            u1."userName", 
+            u1.picture,
+            (
+                SELECT COUNT(*) 
+                FROM comments 
+                WHERE comments."postId" = posts.id
+            ) AS qtt_comments, 
+            sub_query_like.like_users, 
+            sub_query_like.qtt_likes,
+            EXISTS (
+                SELECT 1 FROM likes 
+                WHERE likes."postId" = posts.id
+                AND likes."userId" = $1
+            ) AS "hasLiked",
+            (
+                SELECT COUNT(*) 
+                FROM reposts r
+                WHERE r."postId" = posts.id
+            ) AS qtt_reposts,
+            u2."userName", 
+            reposts.id
+            FROM reposts 
+            JOIN posts ON reposts."postId"=posts.id
+            JOIN users u1 ON posts."userId"=u1.id
+            JOIN users u2 ON reposts."userId"=u2.id
+            LEFT JOIN (
+            SELECT likes."postId", array_agg(users."userName") AS like_users, COUNT(likes.id) AS qtt_likes
+            FROM likes JOIN users ON likes."userId"=users.id
+            GROUP BY likes."postId"
+            ) sub_query_like ON posts.id=sub_query_like."postId"
+            WHERE reposts."userId"=$1
+        )
+        ORDER BY "createdAt" DESC`, [userId]);
 }
 
 export async function followUserRep(userId, followedId) {

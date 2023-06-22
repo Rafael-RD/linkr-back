@@ -19,12 +19,18 @@ export async function getUserPosts(req, res){
     try {
         let resp=[];
         const userPosts=await findUserPostsDB(id);
+        const userSearch=await findUserIdDB(id);
+
         if(userPosts.rowCount===0){
-            const userSearch=await findUserIdDB(id);
             userSearch.rows[0].noPosts=true;
             resp=userSearch.rows;
-        }else resp=userPosts.rows;
-        
+        }else{
+            resp=userPosts.rows;
+            resp.map((e)=>{
+                e.pageUserInfo=userSearch.rows[0]
+            })
+        } 
+
         return res.send(resp); 
     } catch (error) {
         console.error(error);
